@@ -1,0 +1,16 @@
+C:\Users\202401709433\IdeaProjects\pedidos\src\cleancode\Main.java
+C:\Users\202401709433\IdeaProjects\pedidos\src\cleancode\controler\Sistema.java
+C:\Users\202401709433\IdeaProjects\pedidos\src\cleancode\exceptions\CrudException.java
+C:\Users\202401709433\IdeaProjects\pedidos\src\cleancode\exceptions\PedidoJaCanceladoException.java
+C:\Users\202401709433\IdeaProjects\pedidos\src\cleancode\exceptions\PedidoNaoEncontradoException.java
+C:\Users\202401709433\IdeaProjects\pedidos\src\cleancode\exceptions\PersistenciaException.java
+C:\Users\202401709433\IdeaProjects\pedidos\src\cleancode\exceptions\SistemaException.java
+C:\Users\202401709433\IdeaProjects\pedidos\src\cleancode\exceptions\ValidacaoException.java
+C:\Users\202401709433\IdeaProjects\pedidos\src\cleancode\model\Cliente.java
+C:\Users\202401709433\IdeaProjects\pedidos\src\cleancode\model\Db.java
+C:\Users\202401709433\IdeaProjects\pedidos\src\cleancode\model\Item.java
+C:\Users\202401709433\IdeaProjects\pedidos\src\cleancode\model\Pedido.java
+C:\Users\202401709433\IdeaProjects\pedidos\src\cleancode\model\PedidoService.java
+C:\Users\202401709433\IdeaProjects\pedidos\src\cleancode\model\StatusPedido.java
+C:\Users\202401709433\IdeaProjects\pedidos\src\cleancode\model\TipoCliente.java
+C:\Users\202401709433\IdeaProjects\pedidos\src\cleancode\view\Relatorio.java
