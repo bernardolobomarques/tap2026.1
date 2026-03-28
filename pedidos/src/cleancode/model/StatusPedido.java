@@ -1,19 +1,8 @@
+// arquivo removido — status agora é uma String dentro de Pedido ("novo", "cancelado")
+// mantido apenas para não quebrar histórico do git
 package cleancode.model;
 
-public final class StatusPedido {
-    public static final int NOVO = 1;
-    public static final int CANCELADO = 2;
-
-    private StatusPedido() {
-    }
-
-    public static String getDescricao(int codigo) {
-        switch (codigo) {
-            case CANCELADO:
-                return "CANCELADO";
-            default:
-                return "NOVO";
-        }
-    }
+@Deprecated
+public class StatusPedido {
+    // nao usar mais — veja Pedido.getStatus()
 }
-

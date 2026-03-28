@@ -8,13 +8,13 @@ public class Pedido {
     private final Cliente cliente;
     private final List<Item> itens;
     private double total;
-    private int statusCodigo;
+    private String status;
 
     public Pedido(int id, Cliente cliente) {
         this.id = id;
         this.cliente = cliente;
         this.itens = new ArrayList<>();
-        this.statusCodigo = StatusPedido.NOVO;
+        this.status = "novo";
         this.total = 0;
     }
 
@@ -38,16 +38,16 @@ public class Pedido {
         this.total = total;
     }
 
-    public String getStatusDesc() {
-        return StatusPedido.getDescricao(statusCodigo);
+    public String getStatus() {
+        return status;
     }
 
     public boolean isCancelado() {
-        return statusCodigo == StatusPedido.CANCELADO;
+        return status.equals("cancelado");
     }
 
     public void cancelar() {
-        this.statusCodigo = StatusPedido.CANCELADO;
+        this.status = "cancelado";
     }
 
     public void adicionarItem(Item item) {

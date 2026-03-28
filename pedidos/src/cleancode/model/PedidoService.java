@@ -1,17 +1,18 @@
 package cleancode.model;
 
+import cleancode.desconto.IDesconto;
+import cleancode.desconto.DescontoComum;
+import cleancode.desconto.DescontoPremium;
+import cleancode.desconto.DescontoVip;
 import cleancode.exceptions.PedidoJaCanceladoException;
 import cleancode.exceptions.ValidacaoException;
+import cleancode.frete.FreteGratis;
+import cleancode.frete.FreteNormal;
+import cleancode.frete.IFrete;
 
 import java.util.List;
 
 public class PedidoService {
-
-    private static final double DESCONTO_COMUM = 0.05;
-    private static final double DESCONTO_PREMIUM = 0.10;
-    private static final double DESCONTO_VIP = 0.15;
-    private static final double FRETE_MENOR_100 = 25;
-    private static final double FRETE_ENTRE_100_E_300 = 15;
 
     private final Db db;
 
@@ -20,11 +21,11 @@ public class PedidoService {
     }
 
     public Pedido criarPedido(String nomeCliente, int tipoClienteCodigo, List<Item> itens) {
-        validarDadosCriacaoPedido(nomeCliente, itens);
+        validarDados(nomeCliente, itens);
 
         Cliente cliente = criarCliente(nomeCliente, tipoClienteCodigo);
-        Pedido pedido = criarPedidoComItens(cliente, itens);
-        pedido.setTotal(calcularTotalFinal(pedido));
+        Pedido pedido = montarPedido(cliente, itens);
+        pedido.setTotal(calcularTotal(pedido));
 
         db.save(pedido);
         return pedido;
@@ -48,73 +49,49 @@ public class PedidoService {
         pedido.cancelar();
     }
 
-    private void validarDadosCriacaoPedido(String nomeCliente, List<Item> itens) {
+    private void validarDados(String nomeCliente, List<Item> itens) {
         if (nomeCliente == null || nomeCliente.trim().isEmpty()) {
             throw new ValidacaoException("nome do cliente obrigatorio");
         }
-
         if (itens == null || itens.isEmpty()) {
             throw new ValidacaoException("pedido deve ter pelo menos um item");
         }
     }
 
     private Cliente criarCliente(String nomeCliente, int tipoClienteCodigo) {
-        int tipoClienteNormalizado = TipoCliente.fromCodigo(tipoClienteCodigo);
-        return new Cliente(gerarNovoIdCliente(), nomeCliente, gerarEmailPadrao(nomeCliente), tipoClienteNormalizado);
+        int tipo = TipoCliente.fromCodigo(tipoClienteCodigo);
+        String email = nomeCliente.replace(" ", "").toLowerCase() + "@email.com";
+        return new Cliente(db.count() + 1, nomeCliente, email, tipo);
     }
 
-    private Pedido criarPedidoComItens(Cliente cliente, List<Item> itens) {
-        Pedido pedido = new Pedido(gerarNovoIdPedido(), cliente);
+    private Pedido montarPedido(Cliente cliente, List<Item> itens) {
+        Pedido pedido = new Pedido(db.count() + 1, cliente);
         for (Item item : itens) {
             pedido.adicionarItem(item);
         }
         return pedido;
     }
 
-    private double calcularTotalFinal(Pedido pedido) {
+    private double calcularTotal(Pedido pedido) {
         double subtotal = pedido.calcularSubtotalItens();
-        double totalComDesconto = aplicarDesconto(pedido.getCliente().getTipoClienteCodigo(), subtotal);
-        return aplicarFrete(totalComDesconto);
+
+        // cria desconto pela interface — qualquer filho de IDesconto serve
+        IDesconto desconto = getDesconto(pedido.getCliente().getTipoClienteCodigo());
+        double valorComDesconto = desconto.aplicar(subtotal);
+
+        // cria frete pela interface — qualquer filho de IFrete serve
+        IFrete frete = getFrete(pedido.getCliente().getTipoClienteCodigo());
+        return valorComDesconto + frete.calcular(valorComDesconto);
     }
 
-    private double aplicarDesconto(int tipoClienteCodigo, double total) {
-        double desconto = calcularTaxaDesconto(tipoClienteCodigo, total);
-        return total - (total * desconto);
+    private IDesconto getDesconto(int tipoCodigo) {
+        if (tipoCodigo == TipoCliente.PREMIUM) return new DescontoPremium();
+        if (tipoCodigo == TipoCliente.VIP) return new DescontoVip();
+        return new DescontoComum();
     }
 
-    private double calcularTaxaDesconto(int tipoClienteCodigo, double total) {
-        if (tipoClienteCodigo == TipoCliente.COMUM && total > 300) {
-            return DESCONTO_COMUM;
-        }
-        if (tipoClienteCodigo == TipoCliente.PREMIUM && total > 200) {
-            return DESCONTO_PREMIUM;
-        }
-        if (tipoClienteCodigo == TipoCliente.VIP) {
-            return DESCONTO_VIP;
-        }
-        return 0;
-    }
-
-    private double aplicarFrete(double total) {
-        if (total < 100) {
-            return total + FRETE_MENOR_100;
-        }
-        if (total < 300) {
-            return total + FRETE_ENTRE_100_E_300;
-        }
-        return total;
-    }
-
-    private int gerarNovoIdPedido() {
-        return db.count() + 1;
-    }
-
-    private int gerarNovoIdCliente() {
-        return db.count() + 1;
-    }
-
-    private String gerarEmailPadrao(String nomeCliente) {
-        return nomeCliente.replace(" ", "").toLowerCase() + "@email.com";
+    private IFrete getFrete(int tipoCodigo) {
+        if (tipoCodigo == TipoCliente.VIP) return new FreteGratis();
+        return new FreteNormal();
     }
 }
-
