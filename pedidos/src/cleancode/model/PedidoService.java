@@ -21,7 +21,12 @@ public class PedidoService {
     }
 
     public Pedido criarPedido(String nomeCliente, String tipo, List<Item> itens) {
-        validarDados(nomeCliente, itens);
+        if (nomeCliente == null || nomeCliente.trim().isEmpty()) {
+            throw new ValidacaoException("nome do cliente obrigatorio");
+        }
+        if (itens == null || itens.isEmpty()) {
+            throw new ValidacaoException("pedido deve ter pelo menos um item");
+        }
 
         String tipoNormalizado = normalizarTipo(tipo);
         String email = nomeCliente.replace(" ", "").toLowerCase() + "@email.com";
@@ -53,13 +58,29 @@ public class PedidoService {
         pedido.cancelar();
     }
 
-    private void validarDados(String nomeCliente, List<Item> itens) {
-        if (nomeCliente == null || nomeCliente.trim().isEmpty()) {
-            throw new ValidacaoException("nome do cliente obrigatorio");
+    private double calcularTotal(Pedido pedido) {
+        double subtotal = pedido.calcularSubtotalItens();
+
+        // objeto criado pela interface - aceita qualquer filho de IDesconto
+        IDesconto desconto = getDesconto(pedido.getCliente().getTipo());
+        double valorComDesconto = desconto.aplicar(subtotal);
+
+        // objeto criado pela interface - aceita qualquer filho de IFrete
+        IFrete frete = getFrete(pedido.getCliente().getTipo(), valorComDesconto);
+        return frete.calcular(valorComDesconto);
+    }
+
+    private IDesconto getDesconto(String tipo) {
+        switch (tipo) {
+            case "premium": return new DescontoPremium();
+            case "vip":     return new DescontoVip();
+            default:        return new DescontoComum();
         }
-        if (itens == null || itens.isEmpty()) {
-            throw new ValidacaoException("pedido deve ter pelo menos um item");
-        }
+    }
+
+    private IFrete getFrete(String tipo, double valorComDesconto) {
+        if (tipo.equals("vip")) return new FreteGratis();
+        return new FreteNormal(valorComDesconto);
     }
 
     private String normalizarTipo(String tipo) {
@@ -69,28 +90,5 @@ public class PedidoService {
             case "vip":     return "vip";
             default:        return "comum";
         }
-    }
-
-    private double calcularTotal(Pedido pedido) {
-        double subtotal = pedido.calcularSubtotalItens();
-
-        // objeto criado pela interface - aceita qualquer filho de IDesconto
-        IDesconto desconto = getDesconto(pedido.getCliente().getTipo());
-        double valorComDesconto = desconto.aplicar(subtotal);
-
-        // objeto criado pela interface - aceita qualquer filho de IFrete
-        IFrete frete = getFrete(pedido.getCliente().getTipo());
-        return valorComDesconto + frete.calcular(valorComDesconto);
-    }
-
-    private IDesconto getDesconto(String tipo) {
-        if (tipo.equals("premium")) return new DescontoPremium();
-        if (tipo.equals("vip"))     return new DescontoVip();
-        return new DescontoComum();
-    }
-
-    private IFrete getFrete(String tipo) {
-        if (tipo.equals("vip")) return new FreteGratis();
-        return new FreteNormal();
     }
 }

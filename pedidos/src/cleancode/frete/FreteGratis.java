@@ -1,9 +1,10 @@
 package cleancode.frete;
 
 public class FreteGratis implements IFrete {
+    private final double valor = 0.0;
 
     @Override
-    public double calcular(double valorComDesconto) {
-        return 0.0;
+    public double getValor() {
+        return valor;
     }
 }

@@ -1,12 +1,16 @@
 package cleancode.desconto;
 
 public class DescontoPremium implements IDesconto {
+    private final double percentual = 0.10;
+    private final double minimo = 200;
 
     @Override
-    public double aplicar(double subtotal) {
-        if (subtotal > 200) {
-            return subtotal * 0.90;
-        }
-        return subtotal * 0.97;
+    public double getPercentual() {
+        return percentual;
+    }
+
+    @Override
+    public double getMinimo() {
+        return minimo;
     }
 }

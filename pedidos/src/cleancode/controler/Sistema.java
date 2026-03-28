@@ -24,52 +24,66 @@ public class Sistema {
     }
 
     public void executarMenu() {
-        while (true) {
-            exibirMenu();
-            int operacao = lerInteiro("Opcao: ", -1);
+        int operacao = -1;
 
-            if (operacao == 0) {
-                System.out.println("fim");
-                return;
-            }
+        while (operacao != 0) {
+            System.out.println("==== SISTEMA ====");
+            System.out.println("1 - Novo pedido");
+            System.out.println("2 - Listar pedidos");
+            System.out.println("3 - Buscar pedido por id");
+            System.out.println("4 - Relatorio");
+            System.out.println("5 - Cancelar pedido");
+            System.out.println("0 - Sair");
+            System.out.print("Opcao: ");
+            operacao = lerInteiro();
 
             try {
-                processarOperacao(operacao);
-            } catch (SistemaException exception) {
-                System.out.println("erro de negocio: " + exception.getMessage());
-                throw exception;
+                switch (operacao) {
+                    case 1: novoPedido();      break;
+                    case 2: listarPedidos();   break;
+                    case 3: buscarPedidos();   break;
+                    case 4: relatorio.gerar(pedidoService.listarPedidos()); break;
+                    case 5: cancelarPedido();  break;
+                    case 0: System.out.println("Encerrando..."); break;
+                    default: System.out.println("Opcao invalida"); break;
+                }
+            } catch (SistemaException e) {
+                System.out.println("Erro: " + e.getMessage());
             }
-        }
-    }
-
-    private void exibirMenu() {
-        System.out.println("==== SISTEMA ====");
-        System.out.println("1 - Novo pedido");
-        System.out.println("2 - Listar pedidos");
-        System.out.println("3 - Buscar pedido por id");
-        System.out.println("4 - Relatorio");
-        System.out.println("5 - Cancelar pedido");
-        System.out.println("0 - Sair");
-    }
-
-    private void processarOperacao(int operacao) {
-        switch (operacao) {
-            case 1: novoPedido();      break;
-            case 2: listarPedidos();   break;
-            case 3: buscarPedidos();   break;
-            case 4: chamarRelatorio(); break;
-            case 5: cancelarPedido();  break;
-            default: System.out.println("opcao invalida"); break;
         }
     }
 
     public void novoPedido() {
-        String nomeCliente = lerTexto("Nome cliente:");
-        String tipo = lerTipoCliente();
-        List<Item> itens = coletarItensPedido();
+        System.out.println("Nome cliente:");
+        String nomeCliente = scanner.nextLine();
+
+        System.out.println("Tipo cliente (1 comum, 2 premium, 3 vip):");
+        int tipoNum = lerInteiro();
+        String tipo = tipoNum == 2 ? "premium" : tipoNum == 3 ? "vip" : "comum";
+
+        List<Item> itens = new ArrayList<>();
+        String continua = "s";
+        while (continua.equalsIgnoreCase("s")) {
+            System.out.println("Nome item:");
+            String nomeItem = scanner.nextLine();
+            System.out.println("Preco:");
+            double preco = lerDouble();
+            System.out.println("Qtd:");
+            int qtd = lerInteiro();
+            itens.add(new Item(nomeItem, preco, qtd));
+            System.out.println("Adicionar mais item? s/n");
+            continua = scanner.nextLine();
+        }
 
         Pedido pedido = pedidoService.criarPedido(nomeCliente, tipo, itens);
-        imprimirPedidoCriado(pedido);
+        System.out.println("Pedido criado com sucesso");
+        System.out.println("Id: " + pedido.getId());
+        System.out.println("Cliente: " + pedido.getCliente().getNome());
+        System.out.println("Total: " + pedido.getTotal());
+
+        if (pedido.getTotal() > 500) {
+            System.out.println("Pedido importante!!!");
+        }
     }
 
     public void listarPedidos() {
@@ -79,110 +93,62 @@ public class Sistema {
             return;
         }
         for (Pedido pedido : pedidos) {
-            imprimirPedidoDaLista(pedido);
+            System.out.println("---------------");
+            System.out.println("id: " + pedido.getId());
+            System.out.println("cliente: " + pedido.getCliente().getNome());
+            System.out.println("email: " + pedido.getCliente().getEmail());
+            System.out.println("tipo: " + pedido.getCliente().getTipo());
+            System.out.println("status: " + pedido.getStatus());
+            System.out.println("total: " + pedido.getTotal());
+            System.out.println("itens:");
+            for (Item item : pedido.getItens()) {
+                System.out.println(item.getNome() + " - " + item.getQuantidade() + "un - R$" + item.getPrecoUnitario());
+            }
         }
     }
 
     public void buscarPedidos() {
-        int id = lerInteiro("Digite o id:", -1);
+        System.out.println("Digite o id:");
+        int id = lerInteiro();
         Pedido pedido = pedidoService.buscarPedidoPorId(id);
 
         System.out.println("Pedido encontrado");
         System.out.println("id: " + pedido.getId());
         System.out.println("cliente: " + pedido.getCliente().getNome());
+        System.out.println("tipo: " + pedido.getCliente().getTipo());
         System.out.println("status: " + pedido.getStatus());
-        System.out.println("total: " + pedido.getTotal());
         System.out.println("subtotal: " + pedido.calcularSubtotalItens());
-        System.out.println("tipo cliente: " + pedido.getCliente().getTipo());
+        System.out.println("total: " + pedido.getTotal());
 
-        int indiceItem = 1;
+        int contador = 1;
         for (Item item : pedido.getItens()) {
-            imprimirItemDetalhado(indiceItem, item);
-            indiceItem++;
+            System.out.println("item " + contador + ": " + item.getNome() + " - " + item.getQuantidade() + "un - R$" + item.getPrecoUnitario());
+            contador++;
         }
     }
 
-    public void chamarRelatorio() {
-        relatorio.gerar(pedidoService.listarPedidos());
-    }
-
     public void cancelarPedido() {
-        int id = lerInteiro("Digite id do pedido:", -1);
+        System.out.println("Digite id do pedido:");
+        int id = lerInteiro();
         pedidoService.cancelarPedido(id);
         System.out.println("cancelado");
     }
 
-    private List<Item> coletarItensPedido() {
-        List<Item> itens = new ArrayList<>();
-        String continua = "s";
-        while (continua.equalsIgnoreCase("s")) {
-            String nomeItem = lerTexto("Nome item:");
-            double precoItem = lerDouble("Preco item:", 0);
-            int quantidade = lerInteiro("Qtd:", 1);
-            itens.add(new Item(nomeItem, precoItem, quantidade));
-            continua = lerTexto("Adicionar mais item? s/n");
-        }
-        return itens;
-    }
-
-    private String lerTipoCliente() {
-        System.out.println("Tipo cliente (1 comum, 2 premium, 3 vip):");
-        int opcao = lerInteiro("", 1);
-        if (opcao == 2) return "premium";
-        if (opcao == 3) return "vip";
-        return "comum";
-    }
-
-    private void imprimirPedidoCriado(Pedido pedido) {
-        System.out.println("Pedido criado com sucesso");
-        System.out.println("Id: " + pedido.getId());
-        System.out.println("Cliente: " + pedido.getCliente().getNome());
-        System.out.println("Total: " + pedido.getTotal());
-        if (pedido.getTotal() > 500) {
-            System.out.println("Pedido importante!!!");
-        }
-    }
-
-    private void imprimirPedidoDaLista(Pedido pedido) {
-        System.out.println("---------------");
-        System.out.println("id: " + pedido.getId());
-        System.out.println("cliente: " + pedido.getCliente().getNome());
-        System.out.println("email: " + pedido.getCliente().getEmail());
-        System.out.println("tipo: " + pedido.getCliente().getTipo());
-        System.out.println("status: " + pedido.getStatus());
-        System.out.println("total: " + pedido.getTotal());
-        System.out.println("itens:");
-        for (Item item : pedido.getItens()) {
-            System.out.println(item.getNome() + " - " + item.getQuantidade() + "un - R$" + item.getPrecoUnitario());
-        }
-    }
-
-    private void imprimirItemDetalhado(int indice, Item item) {
-        System.out.println("item " + indice + ": " + item.getNome() + " / " + item.getQuantidade() + " / R$" + item.getPrecoUnitario());
-    }
-
-    private String lerTexto(String mensagem) {
-        System.out.println(mensagem);
-        return scanner.nextLine();
-    }
-
-    private int lerInteiro(String mensagem, int valorPadrao) {
-        if (!mensagem.isEmpty()) System.out.println(mensagem);
+    private int lerInteiro() {
         try {
             return Integer.parseInt(scanner.nextLine());
         } catch (NumberFormatException e) {
-            System.out.println("valor invalido, usando padrao " + valorPadrao);
-            return valorPadrao;
+            System.out.println("Insira um numero valido");
+            return -1;
         }
     }
 
-    private double lerDouble(String mensagem, double valorPadrao) {
-        System.out.println(mensagem);
+    private double lerDouble() {
         try {
             return Double.parseDouble(scanner.nextLine());
         } catch (NumberFormatException e) {
-            System.out.println("valor invalido, usando padrao " + valorPadrao);
-            return valorPadrao;
+            System.out.println("Valor invalido");
+            return 0;
         }
     }
 }

@@ -1,5 +1,13 @@
 package cleancode.desconto;
 
 public interface IDesconto {
-    double aplicar(double subtotal);
+    double getPercentual();
+    double getMinimo();
+
+    default double aplicar(double subtotal) {
+        if (subtotal >= getMinimo()) {
+            return subtotal - (subtotal * getPercentual());
+        }
+        return subtotal;
+    }
 }
