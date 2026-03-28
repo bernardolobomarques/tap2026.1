@@ -1,32 +1,8 @@
 package cleancode.model;
 
-public final class TipoCliente {
-    public static final int COMUM = 1;
-    public static final int PREMIUM = 2;
-    public static final int VIP = 3;
-
-    private TipoCliente() {
-    }
-
-    public static int fromCodigo(int codigo) {
-        switch (codigo) {
-            case PREMIUM:
-            case VIP:
-                return codigo;
-            default:
-                return COMUM;
-        }
-    }
-
-    public static String getDescricao(int codigo) {
-        switch (codigo) {
-            case PREMIUM:
-                return "premium";
-            case VIP:
-                return "vip";
-            default:
-                return "comum";
-        }
-    }
+// Classe removida - tipo do cliente agora eh uma String simples ("comum", "premium", "vip")
+// Mantida para nao quebrar historico do git
+@Deprecated
+public class TipoCliente {
+    // nao usar mais - veja Cliente.getTipo()
 }
-

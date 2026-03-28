@@ -1,9 +1,9 @@
 package cleancode.model;
 
-import cleancode.desconto.IDesconto;
 import cleancode.desconto.DescontoComum;
 import cleancode.desconto.DescontoPremium;
 import cleancode.desconto.DescontoVip;
+import cleancode.desconto.IDesconto;
 import cleancode.exceptions.PedidoJaCanceladoException;
 import cleancode.exceptions.ValidacaoException;
 import cleancode.frete.FreteGratis;
@@ -20,13 +20,19 @@ public class PedidoService {
         this.db = db;
     }
 
-    public Pedido criarPedido(String nomeCliente, int tipoClienteCodigo, List<Item> itens) {
+    public Pedido criarPedido(String nomeCliente, String tipo, List<Item> itens) {
         validarDados(nomeCliente, itens);
 
-        Cliente cliente = criarCliente(nomeCliente, tipoClienteCodigo);
-        Pedido pedido = montarPedido(cliente, itens);
-        pedido.setTotal(calcularTotal(pedido));
+        String tipoNormalizado = normalizarTipo(tipo);
+        String email = nomeCliente.replace(" ", "").toLowerCase() + "@email.com";
+        Cliente cliente = new Cliente(db.count() + 1, nomeCliente, email, tipoNormalizado);
 
+        Pedido pedido = new Pedido(db.count() + 1, cliente);
+        for (Item item : itens) {
+            pedido.adicionarItem(item);
+        }
+
+        pedido.setTotal(calcularTotal(pedido));
         db.save(pedido);
         return pedido;
     }
@@ -41,11 +47,9 @@ public class PedidoService {
 
     public void cancelarPedido(int id) {
         Pedido pedido = db.getById(id);
-
         if (pedido.isCancelado()) {
             throw new PedidoJaCanceladoException(id);
         }
-
         pedido.cancelar();
     }
 
@@ -58,40 +62,35 @@ public class PedidoService {
         }
     }
 
-    private Cliente criarCliente(String nomeCliente, int tipoClienteCodigo) {
-        int tipo = TipoCliente.fromCodigo(tipoClienteCodigo);
-        String email = nomeCliente.replace(" ", "").toLowerCase() + "@email.com";
-        return new Cliente(db.count() + 1, nomeCliente, email, tipo);
-    }
-
-    private Pedido montarPedido(Cliente cliente, List<Item> itens) {
-        Pedido pedido = new Pedido(db.count() + 1, cliente);
-        for (Item item : itens) {
-            pedido.adicionarItem(item);
+    private String normalizarTipo(String tipo) {
+        if (tipo == null) return "comum";
+        switch (tipo.toLowerCase()) {
+            case "premium": return "premium";
+            case "vip":     return "vip";
+            default:        return "comum";
         }
-        return pedido;
     }
 
     private double calcularTotal(Pedido pedido) {
         double subtotal = pedido.calcularSubtotalItens();
 
-        // cria desconto pela interface — qualquer filho de IDesconto serve
-        IDesconto desconto = getDesconto(pedido.getCliente().getTipoClienteCodigo());
+        // objeto criado pela interface - aceita qualquer filho de IDesconto
+        IDesconto desconto = getDesconto(pedido.getCliente().getTipo());
         double valorComDesconto = desconto.aplicar(subtotal);
 
-        // cria frete pela interface — qualquer filho de IFrete serve
-        IFrete frete = getFrete(pedido.getCliente().getTipoClienteCodigo());
+        // objeto criado pela interface - aceita qualquer filho de IFrete
+        IFrete frete = getFrete(pedido.getCliente().getTipo());
         return valorComDesconto + frete.calcular(valorComDesconto);
     }
 
-    private IDesconto getDesconto(int tipoCodigo) {
-        if (tipoCodigo == TipoCliente.PREMIUM) return new DescontoPremium();
-        if (tipoCodigo == TipoCliente.VIP) return new DescontoVip();
+    private IDesconto getDesconto(String tipo) {
+        if (tipo.equals("premium")) return new DescontoPremium();
+        if (tipo.equals("vip"))     return new DescontoVip();
         return new DescontoComum();
     }
 
-    private IFrete getFrete(int tipoCodigo) {
-        if (tipoCodigo == TipoCliente.VIP) return new FreteGratis();
+    private IFrete getFrete(String tipo) {
+        if (tipo.equals("vip")) return new FreteGratis();
         return new FreteNormal();
     }
 }

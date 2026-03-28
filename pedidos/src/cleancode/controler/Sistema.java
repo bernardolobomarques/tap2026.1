@@ -5,7 +5,6 @@ import cleancode.model.Db;
 import cleancode.model.Item;
 import cleancode.model.Pedido;
 import cleancode.model.PedidoService;
-import cleancode.model.TipoCliente;
 import cleancode.view.Relatorio;
 
 import java.util.ArrayList;
@@ -55,34 +54,21 @@ public class Sistema {
 
     private void processarOperacao(int operacao) {
         switch (operacao) {
-            case 1:
-                novoPedido();
-                break;
-            case 2:
-                listarPedidos();
-                break;
-            case 3:
-                buscarPedidos();
-                break;
-            case 4:
-                chamarRelatorio();
-                break;
-            case 5:
-                cancelarPedido();
-                break;
-            default:
-                System.out.println("opcao invalida");
-                break;
+            case 1: novoPedido();      break;
+            case 2: listarPedidos();   break;
+            case 3: buscarPedidos();   break;
+            case 4: chamarRelatorio(); break;
+            case 5: cancelarPedido();  break;
+            default: System.out.println("opcao invalida"); break;
         }
     }
 
     public void novoPedido() {
         String nomeCliente = lerTexto("Nome cliente:");
-        int tipoInformado = lerInteiro("Tipo cliente (1 comum, 2 premium, 3 vip):", TipoCliente.COMUM);
+        String tipo = lerTipoCliente();
         List<Item> itens = coletarItensPedido();
 
-        Pedido pedido = pedidoService.criarPedido(nomeCliente, tipoInformado, itens);
-
+        Pedido pedido = pedidoService.criarPedido(nomeCliente, tipo, itens);
         imprimirPedidoCriado(pedido);
     }
 
@@ -92,7 +78,6 @@ public class Sistema {
             System.out.println("sem pedidos");
             return;
         }
-
         for (Pedido pedido : pedidos) {
             imprimirPedidoDaLista(pedido);
         }
@@ -105,13 +90,10 @@ public class Sistema {
         System.out.println("Pedido encontrado");
         System.out.println("id: " + pedido.getId());
         System.out.println("cliente: " + pedido.getCliente().getNome());
-        System.out.println("status: " + pedido.getStatusDesc());
+        System.out.println("status: " + pedido.getStatus());
         System.out.println("total: " + pedido.getTotal());
-
-        double subtotal = pedido.calcularSubtotalItens();
-        System.out.println("subtotal calculado novamente: " + subtotal);
-
-        System.out.println("cliente " + pedido.getCliente().getTipoDesc());
+        System.out.println("subtotal: " + pedido.calcularSubtotalItens());
+        System.out.println("tipo cliente: " + pedido.getCliente().getTipo());
 
         int indiceItem = 1;
         for (Item item : pedido.getItens()) {
@@ -125,25 +107,30 @@ public class Sistema {
     }
 
     public void cancelarPedido() {
-        int id = lerInteiro("Digite id do pedido", -1);
+        int id = lerInteiro("Digite id do pedido:", -1);
         pedidoService.cancelarPedido(id);
         System.out.println("cancelado");
     }
 
     private List<Item> coletarItensPedido() {
         List<Item> itens = new ArrayList<>();
-        String adicionarMaisItens = "s";
-        while (adicionarMaisItens.equalsIgnoreCase("s")) {
+        String continua = "s";
+        while (continua.equalsIgnoreCase("s")) {
             String nomeItem = lerTexto("Nome item:");
             double precoItem = lerDouble("Preco item:", 0);
-            int quantidadeItens = lerInteiro("Qtd:", 1);
-
-            Item item = new Item(nomeItem, precoItem, quantidadeItens);
-            itens.add(item);
-
-            adicionarMaisItens = lerTexto("Adicionar mais item? s/n");
+            int quantidade = lerInteiro("Qtd:", 1);
+            itens.add(new Item(nomeItem, precoItem, quantidade));
+            continua = lerTexto("Adicionar mais item? s/n");
         }
         return itens;
+    }
+
+    private String lerTipoCliente() {
+        System.out.println("Tipo cliente (1 comum, 2 premium, 3 vip):");
+        int opcao = lerInteiro("", 1);
+        if (opcao == 2) return "premium";
+        if (opcao == 3) return "vip";
+        return "comum";
     }
 
     private void imprimirPedidoCriado(Pedido pedido) {
@@ -151,7 +138,6 @@ public class Sistema {
         System.out.println("Id: " + pedido.getId());
         System.out.println("Cliente: " + pedido.getCliente().getNome());
         System.out.println("Total: " + pedido.getTotal());
-
         if (pedido.getTotal() > 500) {
             System.out.println("Pedido importante!!!");
         }
@@ -162,21 +148,17 @@ public class Sistema {
         System.out.println("id: " + pedido.getId());
         System.out.println("cliente: " + pedido.getCliente().getNome());
         System.out.println("email: " + pedido.getCliente().getEmail());
-        System.out.println("tipo: " + pedido.getCliente().getTipoDesc());
-        System.out.println("status: " + pedido.getStatusDesc());
+        System.out.println("tipo: " + pedido.getCliente().getTipo());
+        System.out.println("status: " + pedido.getStatus());
         System.out.println("total: " + pedido.getTotal());
         System.out.println("itens:");
         for (Item item : pedido.getItens()) {
-            System.out.println(item.getNome() + " - " + item.getQuantidade() + " - " + item.getPrecoUnitario());
+            System.out.println(item.getNome() + " - " + item.getQuantidade() + "un - R$" + item.getPrecoUnitario());
         }
     }
 
-    private void imprimirItemDetalhado(int indiceItem, Item item) {
-        System.out.println(
-                "item " + indiceItem + ": " +
-                item.getNome() + " / " +
-                item.getQuantidade() + " / " +
-                item.getPrecoUnitario());
+    private void imprimirItemDetalhado(int indice, Item item) {
+        System.out.println("item " + indice + ": " + item.getNome() + " / " + item.getQuantidade() + " / R$" + item.getPrecoUnitario());
     }
 
     private String lerTexto(String mensagem) {
@@ -184,12 +166,11 @@ public class Sistema {
         return scanner.nextLine();
     }
 
-
     private int lerInteiro(String mensagem, int valorPadrao) {
-        System.out.println(mensagem);
+        if (!mensagem.isEmpty()) System.out.println(mensagem);
         try {
             return Integer.parseInt(scanner.nextLine());
-        } catch (NumberFormatException exception) {
+        } catch (NumberFormatException e) {
             System.out.println("valor invalido, usando padrao " + valorPadrao);
             return valorPadrao;
         }
@@ -199,11 +180,9 @@ public class Sistema {
         System.out.println(mensagem);
         try {
             return Double.parseDouble(scanner.nextLine());
-        } catch (NumberFormatException exception) {
+        } catch (NumberFormatException e) {
             System.out.println("valor invalido, usando padrao " + valorPadrao);
             return valorPadrao;
         }
     }
 }
-
-

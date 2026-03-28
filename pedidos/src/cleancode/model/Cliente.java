@@ -4,13 +4,13 @@ public class Cliente {
     private final int id;
     private final String nome;
     private final String email;
-    private final int tipoClienteCodigo;
+    private final String tipo; // "comum", "premium", "vip"
 
-    public Cliente(int id, String nome, String email, int tipoClienteCodigo) {
+    public Cliente(int id, String nome, String email, String tipo) {
         this.id = id;
         this.nome = nome;
         this.email = email;
-        this.tipoClienteCodigo = tipoClienteCodigo;
+        this.tipo = tipo;
     }
 
     public int getId() {
@@ -25,11 +25,7 @@ public class Cliente {
         return email;
     }
 
-    public int getTipoClienteCodigo() {
-        return tipoClienteCodigo;
-    }
-
-    public String getTipoDesc() {
-        return TipoCliente.getDescricao(tipoClienteCodigo);
+    public String getTipo() {
+        return tipo;
     }
 }
