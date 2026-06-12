@@ -1,7 +1,10 @@
 package com.ibmec.api.controller;
 
+import com.ibmec.api.builder.PedidoBuilder;
+import com.ibmec.api.dto.PedidoRequest;
 import com.ibmec.api.entity.Pedido;
 import com.ibmec.api.service.IPedidoService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,8 +30,16 @@ public class PedidoController {
     }
 
     @PostMapping
-    public ResponseEntity<Pedido> criar(@RequestBody Pedido pedido) {
+    public ResponseEntity<Pedido> criar(@Valid @RequestBody PedidoRequest request) {
+        Pedido pedido = new PedidoBuilder()
+                .comCliente(request.getCliente())
+                .build();
         return ResponseEntity.status(HttpStatus.CREATED).body(service.salvar(pedido));
+    }
+
+    @PutMapping("/{id}")
+    public Pedido atualizar(@PathVariable Long id, @Valid @RequestBody PedidoRequest request) {
+        return service.atualizar(id, request.getCliente());
     }
 
     @PostMapping("/{pedidoId}/produtos/{produtoId}")

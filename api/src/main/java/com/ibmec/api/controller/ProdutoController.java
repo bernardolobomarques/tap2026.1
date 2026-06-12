@@ -2,6 +2,7 @@ package com.ibmec.api.controller;
 
 import com.ibmec.api.entity.Produto;
 import com.ibmec.api.service.IProdutoService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -32,12 +33,12 @@ public class ProdutoController {
     }
 
     @PostMapping("/categoria/{categoriaId}")
-    public ResponseEntity<Produto> criar(@PathVariable Long categoriaId, @RequestBody Produto produto) {
+    public ResponseEntity<Produto> criar(@PathVariable Long categoriaId, @Valid @RequestBody Produto produto) {
         return ResponseEntity.status(HttpStatus.CREATED).body(service.salvar(categoriaId, produto));
     }
 
     @PutMapping("/{id}")
-    public Produto atualizar(@PathVariable Long id, @RequestBody Produto produto) {
+    public Produto atualizar(@PathVariable Long id, @Valid @RequestBody Produto produto) {
         return service.atualizar(id, produto);
     }
 

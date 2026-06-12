@@ -1,5 +1,6 @@
 package com.ibmec.api.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -35,5 +36,6 @@ public class Pedido {
     @Builder.Default
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
+    @JsonIgnoreProperties("pedidos")
     private List<Produto> produtos = new ArrayList<>();
 }

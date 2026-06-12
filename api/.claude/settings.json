@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mvn --version)",
+      "PowerShell(mvn --version 2>$null)",
+      "PowerShell(if \\(-not $?\\) { \"Maven not found\" })",
+      "PowerShell(Get-Command java -ErrorAction SilentlyContinue)",
+      "PowerShell(winget install Apache.Maven --silent 2>&1)",
+      "PowerShell(winget search maven 2>&1)",
+      "PowerShell(head -10)",
+      "Bash(mvn compile *)",
+      "PowerShell(Get-Command mvn -ErrorAction SilentlyContinue)",
+      "PowerShell(& \"C:\\\\tools\\\\maven-extracted\\\\bin\\\\mvn\" --version 2>&1)",
+      "PowerShell(& \"C:\\\\tools\\\\maven-extracted\\\\apache-maven-3.9.6\\\\bin\\\\mvn.cmd\" --version 2>&1)"
+    ],
+    "additionalDirectories": [
+      "C:\\"
+    ]
+  }
+}

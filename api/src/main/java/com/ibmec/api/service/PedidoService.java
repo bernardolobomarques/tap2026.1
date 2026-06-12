@@ -33,6 +33,13 @@ public class PedidoService implements IPedidoService {
     }
 
     @Override
+    public Pedido atualizar(Long id, String novoCliente) {
+        Pedido pedido = buscarPorId(id);
+        pedido.setCliente(novoCliente);
+        return repository.save(pedido);
+    }
+
+    @Override
     public Pedido adicionarProduto(Long pedidoId, Long produtoId) {
         Pedido pedido = buscarPorId(pedidoId);
         Produto produto = produtoService.buscarPorId(produtoId);
