@@ -46,14 +46,22 @@ public class PartidaService implements IPartidaService {
     public Partida adicionarSelecao(Long partidaId, Long selecaoId) {
         Partida partida = buscarPorId(partidaId);
         Selecao selecao = selecaoService.buscarPorId(selecaoId);
-        partida.getSelecoes().add(selecao);
-        return repository.save(partida);
+        boolean jaExiste = partida.getSelecoes().stream()
+                .anyMatch(s -> s.getId().equals(selecaoId));
+        if (!jaExiste) {
+            partida.getSelecoes().add(selecao);
+            return repository.save(partida);
+        }
+        return partida;
     }
 
     @Override
     public Partida removerSelecao(Long partidaId, Long selecaoId) {
         Partida partida = buscarPorId(partidaId);
-        partida.getSelecoes().removeIf(s -> s.getId().equals(selecaoId));
+        boolean existia = partida.getSelecoes().removeIf(s -> s.getId().equals(selecaoId));
+        if (!existia) {
+            throw new ResourceNotFoundException("Seleção na partida", selecaoId);
+        }
         return repository.save(partida);
     }
 

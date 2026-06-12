@@ -45,7 +45,7 @@ public class Jogador {
     private Integer idade;
 
     // N:1 — muitos Jogadores pertencem a uma Seleção
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "selecao_id", nullable = false)
     @ToString.Exclude
     @EqualsAndHashCode.Exclude
