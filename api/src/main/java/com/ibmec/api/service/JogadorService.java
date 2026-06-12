@@ -23,6 +23,7 @@ public class JogadorService implements IJogadorService {
 
     @Override
     public List<Jogador> listarPorSelecao(Long selecaoId) {
+        selecaoService.buscarPorId(selecaoId);
         return repository.findBySelecaoId(selecaoId);
     }
 
